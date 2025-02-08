@@ -11,13 +11,13 @@ function HomePage() {
   const { data: profile, isPending } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
-    staleTime: 10 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: rewardsData, isPending: rewardsPending } = useQuery({
     queryKey: ["rewards"],
     queryFn: getRewards,
-    staleTime: 10 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleRewardClick = (reward: any) => {

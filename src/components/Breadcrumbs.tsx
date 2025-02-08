@@ -6,6 +6,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
+import { Link } from "react-router";
 
 interface BreadcrumbsProps
   extends React.ComponentPropsWithoutRef<typeof Breadcrumb> {
@@ -19,7 +20,9 @@ const Breadcrumbs = ({ paths, ...props }: BreadcrumbsProps) => {
         {paths.map((path, index) => (
           <BreadcrumbItem key={index}>
             {path.href ? (
-              <BreadcrumbLink href={path.href}>{path.name}</BreadcrumbLink>
+              <Link to={path.href}>
+                <BreadcrumbLink>{path.name}</BreadcrumbLink>
+              </Link>
             ) : (
               <BreadcrumbPage>{path.name}</BreadcrumbPage>
             )}

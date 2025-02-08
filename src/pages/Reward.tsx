@@ -31,13 +31,13 @@ const RewardPage = () => {
   const { data: rewardsData, isPending: rewardsPending } = useQuery({
     queryKey: ["rewards"],
     queryFn: getRewards,
-    staleTime: 10 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: rewardTypesData, isPending: rewardTypesPending } = useQuery({
     queryKey: ["rewardTypes"],
     queryFn: getRewardTypes,
-    staleTime: 10 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   if (rewardsPending || rewardTypesPending) {
@@ -54,8 +54,6 @@ const RewardPage = () => {
     selectedType === "All"
       ? rewardsData
       : rewardsData?.filter((r) => r.rewardType.id === selectedType);
-
-  console.log(rewardsData);
 
   return (
     <div className="w-full">

@@ -54,14 +54,14 @@ const RewardDetailPage = () => {
     queryKey: ["reward", rewardId],
     queryFn: () => getReward(rewardId!),
     retry: false,
-    staleTime: 10 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   // fetch point data
   const { data: profile, isPending: profilePending } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
-    staleTime: 5 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const mutation = useMutation({
@@ -69,6 +69,7 @@ const RewardDetailPage = () => {
     onSuccess: () => {
       handleCloseExchangeModal();
       queryClient.invalidateQueries({ queryKey: ["reward", rewardId] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (err) => {
       console.log(err);
