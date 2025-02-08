@@ -46,7 +46,6 @@ const RewardDetailPage = () => {
   // Get the reward ID from the URL params
   const { rewardId } = useParams<{ rewardId: string }>();
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
-  const [isPointEnough, setIsPointEnough] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -77,14 +76,7 @@ const RewardDetailPage = () => {
   });
 
   const handleExchange = async () => {
-    // fetch point data
-    try {
-      const user = await getProfile();
-      setIsPointEnough(user.point >= reward!.point);
-      setIsExchangeModalOpen(true);
-    } catch (err) {
-      console.log(err);
-    }
+    setIsExchangeModalOpen(true);
   };
 
   const handleCloseExchangeModal = () => {
@@ -192,14 +184,10 @@ const RewardDetailPage = () => {
               aria-describedby="Confirm Exchange"
             >
               <DialogHeader>
-                <h2 className="text-lg font-semibold">
-                  {isPointEnough ? "Confirm Exchange" : "Insufficient Points"}
-                </h2>
+                <h2 className="text-lg font-semibold">Confirm Exchange</h2>
               </DialogHeader>
               <p className="text-gray-600">
-                {isPointEnough
-                  ? "Are you sure you want to exchange your points?"
-                  : "You don't have enough points to exchange this reward."}
+                Are you sure you want to exchange your points?
               </p>
               <DialogFooter>
                 <Button variant="ghost" onClick={handleCloseExchangeModal}>
@@ -208,7 +196,7 @@ const RewardDetailPage = () => {
                 <Button
                   variant="default"
                   onClick={handleConfirmExchange}
-                  disabled={!isPointEnough || mutation.isPending}
+                  disabled={mutation.isPending}
                 >
                   {mutation.isPending && <Loader2 className="animate-spin" />}
                   Confirm Exchange
