@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  // baseURL: "https://kept-point-backend.vercel.app/v1",
-  baseURL: "http://127.0.0.1:4499/v1",
+  baseURL: "https://kept-point-backend.vercel.app/v1",
+  // baseURL: "http://127.0.0.1:4499/v1",
 });
 
 axiosInstance.interceptors.request.use((config) => {
