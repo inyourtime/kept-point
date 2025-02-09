@@ -15,7 +15,7 @@ export interface RewardItem {
 }
 
 export const getRewards = async () => {
-  const response = await axiosInstance.get<RewardItem[]>("/rewards");
+  const response = await axiosInstance.get<RewardItem[]>("/rewards?limit=20");
   return response.data;
 };
 

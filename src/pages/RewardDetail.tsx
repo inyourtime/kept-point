@@ -8,18 +8,20 @@ import {
 import { format } from "date-fns";
 import { Calendar, Loader2 } from "lucide-react"; // Icon for date
 import { Button } from "@/components/ui/button"; // Assuming you're using your button component
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getReward, postExchangeReward } from "@/services/reward";
-import { getProfile } from "@/services/user";
+import Loader from "@/components/Loader";
+import { useProfile } from "@/hooks/useProfile";
+import RewardTypeBadge from "@/components/RewardTypeBadge";
+import PointBadge from "@/components/PointBadge";
 
 const NotFoundRewardPage = () => {
   return (
@@ -46,6 +48,7 @@ const RewardDetailPage = () => {
   // Get the reward ID from the URL params
   const { rewardId } = useParams<{ rewardId: string }>();
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+  const [isExchanged, setIsExchanged] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -58,16 +61,13 @@ const RewardDetailPage = () => {
   });
 
   // fetch point data
-  const { data: profile, isPending: profilePending } = useQuery({
-    queryKey: ["profile"],
-    queryFn: getProfile,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: profile, isPending: profilePending } = useProfile();
 
   const mutation = useMutation({
     mutationFn: postExchangeReward,
     onSuccess: () => {
       handleCloseExchangeModal();
+      setIsExchanged(true);
       queryClient.invalidateQueries({ queryKey: ["reward", rewardId] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
@@ -76,137 +76,107 @@ const RewardDetailPage = () => {
     },
   });
 
-  const handleExchange = async () => {
-    setIsExchangeModalOpen(true);
-  };
-
   const handleCloseExchangeModal = () => {
     setIsExchangeModalOpen(false);
   };
 
-  const handleConfirmExchange = () => {
-    mutation.mutate(reward!.id);
-  };
+  useEffect(() => {
+    if (reward) {
+      setIsExchanged(reward.isExchanged); // Set the isExchanged state from reward data
+    }
+  }, [reward]);
 
   if (isPending || profilePending) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md w-full">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Loading...</h1>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!reward) {
     return <NotFoundRewardPage />;
   }
 
+  const canExchange = !isExchanged && profile!.point >= reward.point;
+
   return (
-    <div className="w-full">
-      <div className="max-w-5xl mx-auto p-4 pt-[100px]">
-        <Breadcrumbs
-          className="mb-6 mt-2"
-          paths={[
-            { name: "Home", href: "/" },
-            { name: "Rewards", href: "/reward" },
-            { name: reward.name },
-          ]}
-        />
+    <div className="w-full max-w-5xl mx-auto px-4 pt-[100px]">
+      <Breadcrumbs
+        className="mb-6 mt-2"
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Rewards", href: "/reward" },
+          { name: reward.name },
+        ]}
+      />
+      <Card className="transition-transform duration-300">
+        <CardHeader className="p-4">
+          <img
+            src={reward.image}
+            alt={reward.name}
+            className="w-full h-60 object-cover rounded-t-lg"
+          />
+        </CardHeader>
+        <CardContent className="p-4">
+          <h1 className="text-3xl font-bold">{reward.name}</h1>
+          <p className="text-gray-600 text-sm mb-4 mt-2">
+            {reward.description}
+          </p>
+          <div className="flex items-center text-sm text-gray-500 gap-1 mt-4">
+            <Calendar className="h-4 w-4" />
+            <span>
+              {format(new Date(reward.startDate), "MMM d, yyyy")} -
+              {" " + format(new Date(reward.endDate), "MMM d, yyyy")}
+            </span>
+          </div>
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800">Conditions</h3>
+            <p className="text-sm text-gray-600 mt-2">{reward.conditions}</p>
+          </div>
+        </CardContent>
+        <CardFooter className="p-4 flex justify-between items-center">
+          <RewardTypeBadge rewardType={reward.rewardType.name} />
+          <PointBadge point={reward.point} />
+        </CardFooter>
+        <div className="px-4 pb-4">
+          <Button
+            variant="default"
+            onClick={() => setIsExchangeModalOpen(true)}
+            className="w-full transition-all duration-200"
+            disabled={!canExchange}
+          >
+            {isExchanged
+              ? "Exchanged"
+              : profile!.point < reward.point
+              ? "Insufficient Points"
+              : "Exchange Now"}
+          </Button>
+        </div>
+      </Card>
 
-        <Card className="w-full flex flex-col transition-transform duration-300">
-          {/* Card Header */}
-          <CardHeader className="p-0">
-            <img
-              src={reward.image}
-              alt={reward.name}
-              className="w-full h-60 object-cover rounded-t-lg"
-            />
-          </CardHeader>
-
-          {/* Card Content */}
-          <CardContent className="p-4 flex-grow">
-            <h1 className="text-3xl font-bold">{reward.name}</h1>
-            <p className="text-gray-600 text-sm mb-4 line-clamp-4 mt-2">
-              {reward.description}
-            </p>
-
-            <div className="flex items-center text-sm text-gray-500 gap-1 mt-4">
-              <Calendar className="h-4 w-4" />
-              <span>
-                {format(new Date(reward.startDate), "MMM d, yyyy")} -{" "}
-                {format(new Date(reward.endDate), "MMM d, yyyy")}
-              </span>
-            </div>
-
-            {/* Conditions Section */}
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Conditions
-              </h3>
-              <p className="text-sm text-gray-600 mt-2">{reward.conditions}</p>
-            </div>
-          </CardContent>
-
-          {/* Card Footer (Points and Type) */}
-          <CardFooter className="p-4 mt-auto flex flex-col">
-            <div className="flex justify-between items-center w-full">
-              <Badge className="text-xs">{reward.rewardType.name}</Badge>
-              <span className="text-xl font-bold text-blue-600">
-                {reward.point.toLocaleString()} points
-              </span>
-            </div>
-          </CardFooter>
-
-          {/* Sticky Exchange Button */}
-          <div className="w-full px-4 pb-4 overflow-hidden">
+      <Dialog open={isExchangeModalOpen} onOpenChange={setIsExchangeModalOpen}>
+        <DialogContent className="max-w-md sm:max-w-lg rounded-md">
+          <DialogHeader>
+            <h2 className="text-lg font-semibold">Confirm Exchange</h2>
+          </DialogHeader>
+          <p className="text-gray-600">
+            Are you sure you want to exchange your points?
+          </p>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsExchangeModalOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button
               variant="default"
-              onClick={handleExchange}
-              className="w-full transition-all duration-200 ease-in-out"
-              disabled={reward.isExchanged || reward.point > profile!.point}
+              onClick={() => mutation.mutate(reward.id)}
+              disabled={mutation.isPending}
             >
-              {reward.isExchanged
-                ? "Exchanged"
-                : reward.point > profile!.point
-                ? "Insufficient Points"
-                : "Exchange Now"}
+              {mutation.isPending && <Loader2 className="animate-spin" />}{" "}
+              Confirm Exchange
             </Button>
-          </div>
-
-          {/* Exchange Modal */}
-          <Dialog
-            open={isExchangeModalOpen}
-            onOpenChange={setIsExchangeModalOpen}
-          >
-            <DialogContent
-              className="max-w-md max-h-[80vh] overflow-y-auto sm:max-w-lg rounded-md"
-              aria-description="Confirm Exchange"
-              aria-describedby="Confirm Exchange"
-            >
-              <DialogHeader>
-                <h2 className="text-lg font-semibold">Confirm Exchange</h2>
-              </DialogHeader>
-              <p className="text-gray-600">
-                Are you sure you want to exchange your points?
-              </p>
-              <DialogFooter>
-                <Button variant="ghost" onClick={handleCloseExchangeModal}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={handleConfirmExchange}
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending && <Loader2 className="animate-spin" />}
-                  Confirm Exchange
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </Card>
-      </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

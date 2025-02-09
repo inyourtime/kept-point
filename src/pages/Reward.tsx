@@ -1,11 +1,4 @@
 import { useState } from "react";
-import { format } from "date-fns";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -13,12 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { getRewards, getRewardTypes, RewardItem } from "@/services/reward";
+import Loader from "@/components/Loader";
+import RewardCard from "@/components/RewardCard";
 
 const RewardPage = () => {
   const [selectedType, setSelectedType] = useState("All");
@@ -41,13 +34,7 @@ const RewardPage = () => {
   });
 
   if (rewardsPending || rewardTypesPending) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md w-full">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Loading...</h1>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   const filteredRewards =
@@ -86,44 +73,11 @@ const RewardPage = () => {
         {/* Rewards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-[20px] sm:mt-0 max-h-[75vh] overflow-auto">
           {filteredRewards?.map((reward) => (
-            <Card
+            <RewardCard
+              reward={reward}
+              onRewardClick={handleRewardClick}
               key={reward.id}
-              className="w-full flex flex-col h-full transition-transform duration-300 hover:scale-105 cursor-pointer"
-              onClick={() => handleRewardClick(reward)}
-            >
-              <CardHeader className="p-0">
-                <img
-                  src={reward.image}
-                  alt={reward.name}
-                  className="w-full h-40 object-cover rounded-t-lg"
-                />
-              </CardHeader>
-              <CardContent className="p-4 flex-grow flex flex-col">
-                <h3 className="font-semibold text-lg">{reward.name}</h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {reward.description}
-                </p>
-                <div className="flex items-center text-sm text-gray-500 gap-1 mt-auto">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {format(new Date(reward.startDate), "MMM d")}
-                    {new Date(reward.startDate).getFullYear() !==
-                    new Date(reward.endDate).getFullYear()
-                      ? `, ${format(new Date(reward.startDate), "yyyy")}`
-                      : ""}{" "}
-                    - {format(new Date(reward.endDate), "MMM d, yyyy")}
-                  </span>
-                </div>
-              </CardContent>
-              <CardFooter className="p-4">
-                <div className="w-full flex justify-between items-center">
-                  <Badge className="text-xs">{reward.rewardType.name}</Badge>
-                  <span className="text-lg font-bold text-blue-600">
-                    {reward.point.toLocaleString()} points
-                  </span>
-                </div>
-              </CardFooter>
-            </Card>
+            />
           ))}
         </div>
       </div>

@@ -2,16 +2,31 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Gift, Home, LogOut, Menu, User } from "lucide-react";
+import { Gift, Home, LogOut, Menu, CircleUser, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useProfile } from "@/hooks/useProfile";
+import Loader from "./Loader";
+import PointBadge from "./PointBadge";
 
 function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  const { data: prfile, isPending } = useProfile();
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+
+  if (isPending) {
+    return <Loader />;
+  }
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white shadow-md p-4 z-50">
@@ -29,16 +44,44 @@ function Navbar() {
             icon={<Gift className="h-5 w-5" />}
             label="Reward"
           />
-          <NavItem
-            to="/profile"
-            icon={<User className="h-5 w-5" />}
-            label="Profile"
+
+          <PointBadge
+            point={prfile?.point || 0}
+            className="text-sm mr-3 bg-gray-800"
+            variant={"default"}
           />
-          <LogoutButton onClick={handleLogout} />
+
+          {/* Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 ease-in-out hover:shadow-sm hover:scale-[1.02] cursor-pointer">
+                {/* Added cursor-pointer */}
+                <CircleUser className="h-5 w-5" />
+                {/* <span>Profile</span> */}
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center">
+          <PointBadge
+            point={prfile?.point || 0}
+            className="text-sm mr-3 bg-gray-800"
+            variant={"default"}
+          />
+          {/* Example points */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">

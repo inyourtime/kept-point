@@ -4,9 +4,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
-import { format } from "date-fns";
 import {
   Carousel,
   CarouselContent,
@@ -16,6 +13,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { RewardItem } from "@/services/reward";
+import RewardCard from "./RewardCard";
 
 interface RewardsCarouselProps {
   rewards: RewardItem[];
@@ -26,7 +24,6 @@ interface RewardsCarouselProps {
 
 const RewardsCarousel = ({
   rewards = [],
-  title = "Available Rewards",
   onRewardClick,
   isLoading,
 }: RewardsCarouselProps) => {
@@ -39,11 +36,8 @@ const RewardsCarousel = ({
         loop: true,
       }}
       className="w-full"
-      plugins={[Autoplay({ delay: 4000 })]}
+      plugins={[Autoplay({ delay: 2000 })]}
     >
-      <h2 className="text-xl sm:text-2xl font-bold mb-6 px-4 sm:px-0">
-        {title}
-      </h2>
       <CarouselContent className="mb-2 w-full">
         {isLoading
           ? skeletonItems.map((_, index) => (
@@ -69,51 +63,11 @@ const RewardsCarousel = ({
           : rewards.map((reward, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 ">
                 <div className="p-1">
-                  <Card
-                    key={`${reward.id}-${index}`}
-                    className="w-full flex flex-col h-full transition-transform duration-300 hover:scale-105 cursor-pointer"
-                    onClick={() => onRewardClick?.(reward)}
-                  >
-                    <CardHeader className="p-0">
-                      <img
-                        src={reward.image}
-                        alt={reward.name}
-                        className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-t-lg"
-                      />
-                    </CardHeader>
-                    <CardContent className="p-3 sm:p-4 flex-grow flex flex-col">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-base sm:text-lg line-clamp-1">
-                          {reward.name}
-                        </h3>
-                      </div>
-                      <div className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">
-                        <p className="line-clamp-2">{reward.description}</p>
-                      </div>
-
-                      <div className="flex items-center text-xs sm:text-sm text-gray-500 gap-1 mt-auto">
-                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>
-                          {format(new Date(reward.startDate), "MMM d")}
-                          {new Date(reward.startDate).getFullYear() !==
-                          new Date(reward.endDate).getFullYear()
-                            ? `, ${format(new Date(reward.startDate), "yyyy")}`
-                            : ""}{" "}
-                          - {format(new Date(reward.endDate), "MMM d, yyyy")}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-3 sm:p-4 pt-0 mt-auto">
-                      <div className="w-full flex justify-between items-center">
-                        <Badge className="text-xs">
-                          {reward.rewardType.name}
-                        </Badge>
-                        <span className="text-lg sm:text-xl font-bold text-blue-600">
-                          {reward.point.toLocaleString()} points
-                        </span>
-                      </div>
-                    </CardFooter>
-                  </Card>
+                  <RewardCard
+                    reward={reward}
+                    onRewardClick={onRewardClick}
+                    key={reward.id}
+                  />
                 </div>
               </CarouselItem>
             ))}
