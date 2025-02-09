@@ -28,13 +28,16 @@ function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>
-        <Route path="/" element={<RootLayout />}>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <RootLayout />
+            </ProtectedRoute>
+          }
+        >
           {protectedRoutes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<ProtectedRoute>{route.element}</ProtectedRoute>}
-            />
+            <Route key={route.path} path={route.path} element={route.element} />
           ))}
         </Route>
 
