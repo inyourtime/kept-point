@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { postLogin } from "@/services/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { z } from "zod";
@@ -53,6 +53,8 @@ function LoginPage() {
     },
   });
 
+  const queryClient = useQueryClient();
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     mutation.mutate(values);
   }
@@ -61,6 +63,7 @@ function LoginPage() {
     mutationFn: postLogin,
     onSuccess: (data) => {
       localStorage.setItem("token", data.accessToken);
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       navigate("/");
     },
     onError: (error) => {
